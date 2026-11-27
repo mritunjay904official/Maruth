@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Maruth — GenAI Winter Smog &amp; Drosophila Bio-Sensor Assistant</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-logo" aria-hidden="true">
+        <svg viewBox="0 0 32 32" width="26" height="26" fill="none">
+          <path d="M4 12h15a4 4 0 1 0-4-4" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+          <path d="M4 18h20a3.5 3.5 0 1 1-3.5 3.5" stroke="#38bdf8" stroke-width="2.4" stroke-linecap="round"/>
+          <path d="M6 24h10a3 3 0 1 1-3 3" stroke="#34d399" stroke-width="2.4" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div>
+        <h1>Maruth</h1>
+        <p class="brand-sub">GenAI Winter Smog Guardian &bull; Open-Meteo + Nengo 10-Neuron Bio-Sensor</p>
+      </div>
+    </div>
+
+    <div class="topbar-actions">
+      <div class="search-box">
+        <input id="citySearchInput" type="text" placeholder="Search any city (e.g. Durgapur, Agra)..." aria-label="Search city" />
+        <button id="citySearchBtn" class="btn btn-secondary">Search</button>
+      </div>
+      <button id="refreshBtn" class="btn btn-secondary" title="Refresh live Open-Meteo & Nengo data">Refresh Live</button>
+      <button id="openSettingsBtn" class="btn btn-primary">AI Settings &amp; Telemetry</button>
+    </div>
+  </header>
+
+  <nav class="preset-bar" aria-label="Regional Presets">
+    <span class="preset-label">Regional Presets:</span>
+    <div id="presetPills" class="preset-pills"></div>
+    <span id="dataSourceBadge" class="source-badge">Loading...</span>
+  </nav>
+
+  <main class="container">
+    <!-- Hero Banner -->
+    <section class="headline-banner card" id="headlineBanner">
+      <div class="headline-left">
+        <span class="pill-tag" id="providerPill">Initializing Maruth...</span>
+        <h2 id="planHeadline">Fetching live PM2.5, gas concentrations, and Drosophila neural telemetry...</h2>
+      </div>
+      <div class="headline-meta">
+        <div class="meta-chip">
+          <span class="meta-k">Compression</span>
+          <span class="meta-v" id="compressionMetric">--%</span>
+        </div>
+        <div class="meta-chip">
+          <span class="meta-k">Cache</span>
+          <span class="meta-v" id="cacheMetric">--</span>
+        </div>
+        <div class="meta-chip">
+          <span class="meta-k">Tier</span>
+          <span class="meta-v" id="tierMetric">--</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Row 1: Weather/Gas Telemetry + Drosophila Nengo Bio-Sensor -->
+    <section class="grid-2">
+      <!-- Live PM2.5 & Gas Card -->
+      <article class="card telemetry-card">
+        <div class="card-header">
+          <div>
+            <h3>Live Air &amp; Gas Telemetry</h3>
+            <p class="card-sub" id="citySubtitle">weather_api.py &rarr; Open-Meteo Live Feed</p>
+          </div>
+          <div class="aqi-badge" id="aqiBadge">
+            <span class="aqi-num" id="aqiValue">--</span>
+            <span class="aqi-text" id="aqiCategory">Loading</span>
+          </div>
+        </div>
+
+        <div class="pollutant-grid">
+          <div class="pollutant-tile">
+            <span class="p-label">PM<sub>2.5</sub></span>
+            <span class="p-val" id="pm25Val">--</span>
+            <span class="p-unit">&mu;g/m&sup3;</span>
+          </div>
+          <div class="pollutant-tile">
+            <span class="p-label">PM<sub>10</sub></span>
+            <span class="p-val" id="pm10Val">--</span>
+            <span class="p-unit">&mu;g/m&sup3;</span>
+          </div>
+          <div class="pollutant-tile">
+            <span class="p-label">CO</span>
+            <span class="p-val" id="coVal">--</span>
+            <span class="p-unit">&mu;g/m&sup3;</span>
+          </div>
+          <div class="pollutant-tile">
+            <span class="p-label">NO<sub>2</sub></span>
+            <span class="p-val" id="no2Val">--</span>
+            <span class="p-unit">&mu;g/m&sup3;</span>
+          </div>
+        </div>
+
+        <div class="inversion-box" id="inversionBox">
+          <div class="inv-top">
+            <strong id="inversionRisk">Inversion Risk: --</strong>
+            <span id="weatherStats">Wind: -- km/h &bull; Temp: -- &deg;C</span>
+          </div>
+          <p id="inversionText">Analyzing thermal boundary-layer trapping...</p>
+        </div>
+
+        <div class="chart-wrap">
+          <div class="chart-head">
+            <span>24h PM<sub>2.5</sub> Curve &amp; Safe Ventilation Windows</span>
+            <span class="safe-window-pill" id="safeWindowsLabel">Best: --</span>
+          </div>
+          <svg id="hourlyChart" class="svg-chart" viewBox="0 0 560 155" role="img" aria-label="24-hour PM2.5 ventilation chart"></svg>
+        </div>
+      </article>
+
+      <!-- Drosophila 10-Neuron Bio-Sensor Card -->
+      <article class="card biosensor-card">
+        <div class="card-header">
+          <div>
+            <h3>Drosophila 10-Neuron Olfactory Bio-Sensor</h3>
+            <p class="card-sub">drosophila_brain.py &rarr; Nengo 5.0s Spiking Ensemble</p>
+          </div>
+          <span class="bio-status-pill" id="bioStatusPill">IDLE</span>
+        </div>
+
+        <div class="bio-metrics-row">
+          <div class="bio-metric">
+            <span class="b-label">Neural Response</span>
+            <span class="b-val" id="neuralResponseVal">--</span>
+            <span class="b-sub">Normalized [0.0 &ndash; 1.0]</span>
+          </div>
+          <div class="bio-metric">
+            <span class="b-label">Decoded PM<sub>2.5</sub></span>
+            <span class="b-val" id="detectedPm25Val">--</span>
+            <span class="b-sub">Alert &gt; 100 &mu;g/m&sup3;</span>
+          </div>
+          <div class="bio-metric">
+            <span class="b-label">Mean Firing Rate</span>
+            <span class="b-val" id="firingRateVal">--</span>
+            <span class="b-sub">10 LIF Neurons (Hz)</span>
+          </div>
+        </div>
+
+        <p class="bio-interp" id="bioInterpText">Running 10-neuron Nengo simulation...</p>
+
+        <div class="chart-wrap">
+          <div class="chart-head">
+            <span>5.0s Nengo Probe Trace (Input Signal vs. Ensemble Output)</span>
+            <span class="legend-inline">
+              <i class="dot-input"></i> Input &nbsp;
+              <i class="dot-neural"></i> Neural Output
+            </span>
+          </div>
+          <svg id="nengoTraceChart" class="svg-chart" viewBox="0 0 560 130" role="img" aria-label="Nengo probe waveform"></svg>
+        </div>
+
+        <div class="neuron-bars-wrap">
+          <div class="chart-head">
+            <span>10-Neuron Ensemble Firing Rates (N0 &ndash; N9)</span>
+            <span id="simModeBadge" class="tiny-tag">live_nengo</span>
+          </div>
+          <div id="neuronBars" class="neuron-bars"></div>
+        </div>
+
+        <div class="bio-simulator-controls">
+          <label for="stressPmSlider">
+            Test Custom PM<sub>2.5</sub> Stimulus: <strong id="stressPmLabel">Live City</strong>
+          </label>
+          <div class="slider-row">
+            <input id="stressPmSlider" type="range" min="10" max="450" step="5" value="100" />
+            <button id="runBioTestBtn" class="btn btn-secondary">Simulate Nengo</button>
+            <button id="resetBioLiveBtn" class="btn btn-ghost">Use Live</button>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <!-- Row 2: Household Profiler + Direct Impact Explainer -->
+    <section class="grid-2">
+      <!-- Household Profiler -->
+      <article class="card profiler-card">
+        <div class="card-header">
+          <div>
+            <h3>Household &amp; Lifestyle Profile</h3>
+            <p class="card-sub">Tailors routines, IAQ hacks, and emission deltas</p>
+          </div>
+          <button id="regeneratePlanBtn" class="btn btn-primary">Update Tailored Plan</button>
+        </div>
+
+        <form id="profileForm" class="profile-form">
+          <div class="form-grid">
+            <label>
+              Household Size
+              <input type="number" id="householdSize" min="1" max="16" value="4" />
+            </label>
+            <label>
+              Primary Room Volume (m&sup3;)
+              <input type="number" id="roomVolume" min="15" max="200" value="45" />
+            </label>
+            <label>
+              Home Sealing Quality
+              <select id="homeSealing">
+                <option value="drafty">Drafty (older gaps / wooden frames)</option>
+                <option value="average" selected>Average urban windows</option>
+                <option value="well_sealed">Well-sealed / weatherstripped</option>
+              </select>
+            </label>
+            <label>
+              Budget Tier
+              <select id="budgetTier">
+                <option value="zero_cost_diy">Zero-Cost DIY Hacks</option>
+                <option value="low_cost" selected>Low-Cost (DIY Box Fan / Seals)</option>
+                <option value="appliance_upgrade">Appliance / HEPA Upgrade</option>
+              </select>
+            </label>
+            <label>
+              Cooking Fuel
+              <select id="cookingFuel">
+                <option value="lpg" selected>LPG Cylinder</option>
+                <option value="piped_gas">Piped Natural Gas</option>
+                <option value="induction">Electric / Induction</option>
+                <option value="biomass_wood">Wood / Biomass / Coal</option>
+              </select>
+            </label>
+            <label>
+              Winter Heating
+              <select id="heatingSource">
+                <option value="none" selected>None / Woolens</option>
+                <option value="electric_radiator">Electric Oil Radiator</option>
+                <option value="heat_pump">Heat Pump / Inverter AC</option>
+                <option value="wood_coal_stove">Wood / Coal Brazier</option>
+              </select>
+            </label>
+            <label>
+              Daily Commute Mode
+              <select id="commuteMode">
+                <option value="two_wheeler" selected>Two-Wheeler</option>
+                <option value="car_petrol_diesel">Petrol / Diesel Car</option>
+                <option value="public_transit">Public Transit / Metro / E-Rickshaw</option>
+                <option value="walk_cycle">Walk / Cycle</option>
+                <option value="ev_hybrid">EV / Hybrid</option>
+              </select>
+            </label>
+            <label>
+              Daily Commute (km)
+              <input type="number" id="commuteKm" min="0" max="120" value="14" />
+            </label>
+          </div>
+
+          <div class="vuln-wrap">
+            <span class="field-label">Sensitive Household Members:</span>
+            <div class="chip-group" id="vulnChips">
+              <button type="button" class="chip active" data-val="children">Children</button>
+              <button type="button" class="chip active" data-val="elderly">Elderly</button>
+              <button type="button" class="chip" data-val="infants">Infants</button>
+              <button type="button" class="chip" data-val="asthma_copd">Asthma / COPD</button>
+              <button type="button" class="chip" data-val="pregnant">Pregnant</button>
+            </div>
+          </div>
+
+          <label class="checkbox-inline">
+            <input type="checkbox" id="hasHepa" />
+            <span>Household already owns a True HEPA air purifier</span>
+          </label>
+        </form>
+      </article>
+
+      <!-- Direct Impact Explainer -->
+      <article class="card impact-card">
+        <div class="card-header">
+          <div>
+            <h3>Direct Impact of Your Choices</h3>
+            <p class="card-sub">Real-time indoor mass-balance &amp; neighborhood emission model</p>
+          </div>
+          <span class="pill-tag pill-green" id="riskTransitionBadge">-- &rarr; --</span>
+        </div>
+
+        <div class="exposure-bars">
+          <div class="exp-row">
+            <span>Outdoor Ambient</span>
+            <div class="bar-track"><div class="bar-fill bar-out" id="barOutdoor"></div></div>
+            <strong id="valOutdoor">-- &mu;g/m&sup3;</strong>
+          </div>
+          <div class="exp-row">
+            <span>Unprotected Indoor</span>
+            <div class="bar-track"><div class="bar-fill bar-base" id="barBaseIn"></div></div>
+            <strong id="valBaseIn">-- &mu;g/m&sup3;</strong>
+          </div>
+          <div class="exp-row">
+            <span>Protected Indoor</span>
+            <div class="bar-track"><div class="bar-fill bar-proj" id="barProjIn"></div></div>
+            <strong id="valProjIn">-- &mu;g/m&sup3;</strong>
+          </div>
+        </div>
+
+        <div class="impact-kpis">
+          <div class="kpi-box">
+            <span class="kpi-label">Indoor PM<sub>2.5</sub> Cut</span>
+            <span class="kpi-val" id="kpiIndoorCut">--%</span>
+            <span class="kpi-sub" id="kpiInhaledCut">-- &mu;g/day avoided</span>
+          </div>
+          <div class="kpi-box">
+            <span class="kpi-label">Lung Burden Saved</span>
+            <span class="kpi-val" id="kpiCigs">--</span>
+            <span class="kpi-sub">cig-equivalents / week</span>
+          </div>
+          <div class="kpi-box">
+            <span class="kpi-label">Neighborhood Saved</span>
+            <span class="kpi-val" id="kpiPmSaved">-- g/day</span>
+            <span class="kpi-sub" id="kpiCo2Saved">-- kg CO<sub>2</sub>e/mo</span>
+          </div>
+          <div class="kpi-box">
+            <span class="kpi-label">Monthly Net Cost</span>
+            <span class="kpi-val" id="kpiCost">--</span>
+            <span class="kpi-sub" id="kpiUpfront">Upfront: --</span>
+          </div>
+        </div>
+
+        <div class="causal-list-wrap">
+          <h4>Why Your Active Choices Work</h4>
+          <ul id="causalList" class="causal-list"></ul>
+        </div>
+      </article>
+    </section>
+
+    <!-- Row 3: Tailored Pillars (Routines, IAQ Hacks, Sustainable Swaps & Community) -->
+    <section class="card pillars-card">
+      <div class="pillars-header">
+        <div>
+          <h3>Maruth Tailored Action Plan</h3>
+          <p class="card-sub">Toggle any intervention below to see its live impact on your home's PM<sub>2.5</sub> and community emissions</p>
+        </div>
+        <div class="tabs" role="tablist">
+          <button class="tab-btn active" data-tab="routines" role="tab">Low-Emission Routines</button>
+          <button class="tab-btn" data-tab="iaq" role="tab">Indoor Air Quality Hacks</button>
+          <button class="tab-btn" data-tab="sustainable" role="tab">Sustainable &amp; Community Swaps</button>
+        </div>
+      </div>
+
+      <div id="tab-routines" class="tab-panel active">
+        <div id="routineTimeline" class="routine-grid"></div>
+        <div id="routineCards" class="action-cards-grid"></div>
+      </div>
+
+      <div id="tab-iaq" class="tab-panel">
+        <div id="iaqCards" class="action-cards-grid"></div>
+      </div>
+
+      <div id="tab-sustainable" class="tab-panel">
+        <div id="sustainableCards" class="action-cards-grid"></div>
+        <div class="community-playbook">
+          <div class="cp-head">
+            <h4>Community &amp; Neighborhood Playbook</h4>
+            <button id="copyPlaybookBtn" class="btn btn-secondary">Copy Shareable Brief</button>
+          </div>
+          <ul id="communityPlaybookList" class="playbook-list"></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Row 4: Streaming GenAI Chat Assistant -->
+    <section class="card chat-card">
+      <div class="card-header">
+        <div>
+          <h3>Ask Maruth &mdash; Context-Aware GenAI Advisor</h3>
+          <p class="card-sub">Grounded via tool calls to weather_api.py, drosophila_brain.py, Impact Physics Engine &amp; BM25 Smog Playbook</p>
+        </div>
+        <span class="tiny-tag" id="chatToolsBadge">Ready</span>
+      </div>
+
+      <div class="quick-prompts" id="quickPrompts">
+        <button class="qp-btn" data-q="When is the safest time today to open windows or walk outside with kids?">Safe window &amp; walk timing?</button>
+        <button class="qp-btn" data-q="How can we build a low-cost DIY air purifier for our bedroom under Rs 2000?">DIY Corsi-Rosenthal purifier</button>
+        <button class="qp-btn" data-q="Explain what the Drosophila 10-neuron status means and how our choices change our indoor PM2.5.">Explain Nengo status &amp; impact</button>
+        <button class="qp-btn" data-q="What can our neighborhood or RWA do tonight to stop winter leaf and wood smoke?">Community zero-burn action</button>
+      </div>
+
+      <div id="chatMessages" class="chat-messages">
+        <div class="chat-msg assistant">
+          <div class="msg-role">Maruth</div>
+          <div class="msg-body">Namaste! I'm monitoring your live Open-Meteo pollutant levels and the 10-neuron Drosophila bio-sensor. Ask me anything about safe timings, DIY indoor clean-air hacks, or low-emission swaps for your family.</div>
+        </div>
+      </div>
+
+      <form id="chatForm" class="chat-input-row">
+        <input id="chatInput" type="text" placeholder="Ask about your city's smog, asthma protection, DIY filters, or cooking swaps..." required />
+        <button type="submit" id="sendChatBtn" class="btn btn-primary">Send</button>
+      </form>
+    </section>
+  </main>
+
+  <!-- Settings & GenAI Optimization Telemetry Modal -->
+  <div id="settingsModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h3 id="settingsTitle">GenAI Provider &amp; Optimization Telemetry</h3>
+        <button id="closeSettingsBtn" class="btn btn-ghost">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-note">
+          Maruth works out of the box with its Local RAG + Physics Engine, and optionally connects to Google Gemini or Anthropic Claude for live tool-calling synthesis. Keys remain in your browser session only.
+        </p>
+
+        <label class="modal-field">
+          GenAI Provider Mode
+          <select id="apiProviderSelect">
+            <option value="auto">Auto (Use configured key or Local RAG Fallback)</option>
+            <option value="gemini">Google Gemini (2.5 Flash / Pro routing)</option>
+            <option value="anthropic">Anthropic Claude (Haiku)</option>
+            <option value="local">Local RAG + Physics Engine Only (Zero API Calls)</option>
+          </select>
+        </label>
+
+        <label class="modal-field">
+          Optional API Key (Gemini `AIza...` or Anthropic `sk-ant-...`)
+          <input id="apiKeyInput" type="password" placeholder="Leave blank to use Local RAG + Physics Engine" autocomplete="off" />
+        </label>
+
+        <div class="telemetry-grid" id="telemetryModalGrid">
+          <div class="tele-box"><span>Total GenAI Requests</span><strong id="tTotalReq">0</strong></div>
+          <div class="tele-box"><span>Plan Cache Hits</span><strong id="tCacheHits">0</strong></div>
+          <div class="tele-box"><span>Tokens Saved (Compression)</span><strong id="tTokComp">0</strong></div>
+          <div class="tele-box"><span>Tokens Saved (Cache)</span><strong id="tTokCache">0</strong></div>
+          <div class="tele-box"><span>Grounded Tool Calls</span><strong id="tTools">0</strong></div>
+        </div>
+
+        <div class="modal-actions">
+          <button id="saveSettingsBtn" class="btn btn-primary">Save &amp; Apply</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+tornado>=6.6
+httpx>=0.28
+requests>=2.32
+pydantic>=2.10
+nengo>=4.0
+numpy>=2.0
+anthropic>=0.40
