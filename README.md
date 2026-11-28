@@ -1,5 +1,16 @@
 # Maruth — GenAI Winter Smog & Drosophila Bio-Sensor Assistant
+**Live Deployment:** https://maruth-air-quality.onrender.com
 
+## Hackathon Alignment (Vertical, Logic & Assumptions)
+
+- **Chosen Vertical:** Urban Air Quality, Environmental Health & Smart Household Assistant (Winter Smog Mitigation).
+- **Approach & Logic:** Combines real-time atmospheric telemetry (Open-Meteo API), a bio-inspired 10-neuron *Drosophila* olfactory Spiking Neural Network (Nengo LIF ensemble), and a deterministic single-zone indoor mass-balance physics model (`C_in = (P * AER * C_out + S_in / V) / (AER + k_dep + CADR / V)`) to generate personalized, low-cost intervention plans.
+- **How the Solution Works:** Fetches live pollutant levels (`PM2.5`, `PM10`, `CO`, `NO2`), detects thermal inversion risk and safe afternoon ventilation windows, runs a 5-second neural spike simulation to classify air toxicity, and computes exact indoor `PM2.5` reductions, lung-burden savings, and monthly cost deltas tailored to the user's household profile.
+- **Assumptions Made:**
+  - Single-zone well-mixed indoor air model with default room volume (`45 m³`) and standard outdoor-to-indoor penetration factors (`P`) based on window sealing quality.
+  - Standard Clean Air Delivery Rate (`CADR = 320 m³/h`) assumed for a DIY Corsi-Rosenthal box fan filter.
+  - Cigarette-equivalent lung burden is estimated using standard epidemiological inhalation equivalence (~22 µg/m³ daily `PM2.5` ≈ 1 cigarette/day).
+  - Baseline fallback telemetry activates automatically if external weather APIs are temporarily unreachable.
 **Maruth** is a GenAI-powered web dashboard that helps families and communities navigate severe winter smog and urban air pollution. It combines real-time pollutant telemetry (`weather_api.py`), a 10-neuron Nengo *Drosophila* olfactory neural bio-sensor (`drosophila_brain.py`), a deterministic indoor air-quality physics & emissions impact engine, and an optimized multi-provider GenAI orchestrator.
 
 ---
